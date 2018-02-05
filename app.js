@@ -31,7 +31,7 @@ app.get('/students', (req, res, next) => {
     // Store SQL with escaped table/column/value fields
     // Store table/column/value within an array
     let query = 'SELECT * FROM ??';
-    let inserts = ['student'];
+    let inserts = ['students'];
 
     // Formats escaped values into valid SQL
     let sql = mysql.format(query, inserts);
