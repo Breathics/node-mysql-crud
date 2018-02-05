@@ -1,27 +1,50 @@
+// Require needed modules / dependencies
 const express = require('express');
 const mysql = require('mysql');
 const credentials = require('./config/mysqlCredentials');
 
-const PORT = 3000;
+// Instantiate Express application and MySQL database connection
 const app = express();
+const PORT = 3000; // PORT used to start your server on
 const connection = mysql.createConnection(credentials);
 
+// Verify if connection is successful
+connection.connect((err) => {
+    if (err) throw err;
+
+    console.log('Connected to database');
+});
+
+// === Consumption of middleware === //
+// Used to parse data out of the request body
 app.use(express.json());
 app.use(express.urlencoded());
 
+// === Routes === //
 app.get('/', (req, res) => {
     res.send('Luigi');
 });
 
+// READ / SELECT all
 app.get('/students', (req, res, next) => {
+    // Used for prepared statements
+    // Store SQL with escaped table/column/value fields
+    // Store table/column/value within an array
     let query = 'SELECT * FROM ??';
     let inserts = ['student'];
 
+    // Formats escaped values into valid SQL
     let sql = mysql.format(query, inserts);
 
+    // MySQL query requires an SQL statement and callback to handle database response
+    // err if there is any
+    // results / rows / data for response
+    // fields (if any)
     connection.query(sql, (err, results, fields) => {
+        // We use next(err) to pass our err into the next middleware (error-handling)
         if (err) return next(err);
 
+        // Return output response to the client
         const output = {
             success: true,
             data: results
@@ -30,6 +53,7 @@ app.get('/students', (req, res, next) => {
     });
 });
 
+// READ / SELECT by id
 app.get('/students/:id', (req, res, next) => {
     const { id } = req.params;
 
@@ -49,6 +73,7 @@ app.get('/students/:id', (req, res, next) => {
     });
 });
 
+// CREATE / INSERT student
 app.post('/students', (req, res, next) => {
     const { name, course, grade } = req.body;
 
@@ -67,6 +92,7 @@ app.post('/students', (req, res, next) => {
     })
 });
 
+// UPDATE - Under construction -
 app.post('/students/update', (req, res, next) => {
     const { id, name, course, grade } = req.body;
 
@@ -85,6 +111,7 @@ app.post('/students/update', (req, res, next) => {
     })
 });
 
+// DELETE
 app.post('/students/delete', (req, res, next) => {
     const { id } = req.body;
 
@@ -103,6 +130,7 @@ app.post('/students/delete', (req, res, next) => {
     })
 });
 
+// === Error Handling Middleware === //
 app.use(function(err, req, res, next){
     if (err) {
         console.error(err);
@@ -111,6 +139,7 @@ app.use(function(err, req, res, next){
     next();
 })
 
+// === Listening on PORT === //
 app.listen(PORT, () => {
     console.log("Server started on PORT: ", PORT);
 });
